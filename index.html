@@ -1,48 +1,896 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mi Proyecto</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f0f4ff;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FinApp</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 40px 60px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      text-align: center;
-    }
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --accent: #00e5a0;
+    --accent2: #0070f3;
+    --accent3: #f59e0b;
+    --text: #f0f4ff;
+    --muted: #6b7a99;
+    --card: #151e30;
+    --radius: 20px;
+  }
 
-    h1 {
-      font-size: 2.5rem;
-      color: #3b82f6;
-      margin-bottom: 8px;
-    }
+  html, body {
+    height: 100%;
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'DM Sans', sans-serif;
+  }
 
-    p {
-      color: #6b7280;
-      font-size: 1.1rem;
-    }
-  </style>
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 50px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Status bar */
+  .statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .statusbar .notch {
+    width: 120px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .statusbar .icons span { font-size: 14px; }
+
+  /* Screen container */
+  .screens { flex: 1; position: relative; overflow: hidden; }
+  .screen {
+    position: absolute;
+    inset: 0;
+    padding: 20px 24px 24px;
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(30px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+  .screen.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
+  }
+
+  /* HOME */
+  .greeting {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .welcome-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 32px;
+  }
+  .welcome-title span { color: var(--accent); }
+
+  .menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .menu-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .menu-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .menu-card:active { transform: scale(0.97); }
+  .menu-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+
+  .menu-card.bank::before { background: linear-gradient(135deg, rgba(0,229,160,0.1), transparent); }
+  .menu-card.bolsa::before { background: linear-gradient(135deg, rgba(0,112,243,0.1), transparent); }
+  .menu-card.edu::before { background: linear-gradient(135deg, rgba(245,158,11,0.1), transparent); }
+  .menu-card:hover::before { opacity: 1; }
+
+  .card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+  .bank .card-icon { background: rgba(0,229,160,0.15); }
+  .bolsa .card-icon { background: rgba(0,112,243,0.15); }
+  .edu .card-icon { background: rgba(245,158,11,0.15); }
+
+  .card-info h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .card-info p { font-size: 13px; color: var(--muted); }
+
+  .card-arrow {
+    margin-left: auto;
+    font-size: 20px;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .menu-card:hover .card-arrow { transform: translateX(4px); color: var(--text); }
+
+  /* BANK SCREEN */
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    width: fit-content;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: var(--text); }
+
+  .balance-card {
+    background: linear-gradient(135deg, #00e5a0 0%, #00b8d4 100%);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .balance-card::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+  }
+  .balance-card::before {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 20px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+  .balance-label { font-size: 12px; color: rgba(0,0,0,0.55); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .balance-amount { font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; color: #0a1a14; line-height: 1; margin-bottom: 20px; }
+  .balance-amount sup { font-size: 22px; vertical-align: super; }
+  .card-number { font-size: 13px; color: rgba(0,0,0,0.5); letter-spacing: 0.15em; font-weight: 500; }
+
+  .screen-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .action-btn:hover { transform: translateY(-3px); }
+  .action-btn:active { transform: scale(0.93); }
+  .action-circle {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .action-label { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.2; }
+
+  .transactions { }
+  .tx-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .tx-item:last-child { border-bottom: none; }
+  .tx-icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .tx-info { flex: 1; }
+  .tx-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .tx-date { font-size: 12px; color: var(--muted); }
+  .tx-amount { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .tx-amount.neg { color: #f87171; }
+  .tx-amount.pos { color: var(--accent); }
+
+  /* BOLSA SCREEN */
+  .bolsa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .bolsa-index { font-family: 'Syne', sans-serif; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .bolsa-value { font-family: 'Syne', sans-serif; font-size: 34px; font-weight: 800; color: var(--text); }
+  .bolsa-change { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 8px; }
+  .bolsa-change.up { background: rgba(0,229,160,0.15); color: var(--accent); }
+  .bolsa-change.down { background: rgba(248,113,113,0.15); color: #f87171; }
+
+  .chart-container {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .chart-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .chart-tab {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .chart-tab.active { background: var(--accent2); color: white; }
+
+  canvas#chart { width: 100% !important; height: 160px !important; }
+
+  .stocks-list { display: flex; flex-direction: column; gap: 10px; }
+  .stock-item {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .stock-logo {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    flex-shrink: 0;
+  }
+  .stock-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .stock-full { font-size: 11px; color: var(--muted); }
+  .stock-right { margin-left: auto; text-align: right; }
+  .stock-price { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .stock-pct { font-size: 12px; font-weight: 600; }
+  .up { color: var(--accent); }
+  .down { color: #f87171; }
+
+  /* EDU SCREEN */
+  .edu-hero {
+    background: linear-gradient(135deg, #1a1060 0%, #0a1a3a 100%);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(245,158,11,0.2);
+    text-align: center;
+  }
+  .edu-hero .emoji { font-size: 48px; margin-bottom: 12px; }
+  .edu-hero h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+  .edu-hero p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  .edu-section { margin-bottom: 24px; }
+  .edu-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .course-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .course-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .course-badge {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .course-info { flex: 1; }
+  .course-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .course-meta { font-size: 12px; color: var(--muted); }
+  .course-level {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .beginner { background: rgba(0,229,160,0.15); color: var(--accent); }
+  .medium { background: rgba(245,158,11,0.15); color: var(--accent3); }
+  .advanced { background: rgba(248,113,113,0.15); color: #f87171; }
+
+  .rec-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    gap: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .rec-card:hover { transform: translateY(-2px); }
+  .rec-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: rgba(245,158,11,0.2);
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .rec-text h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .rec-text p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    flex-shrink: 0;
+    height: 80px;
+    background: var(--surface);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 10px 14px;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+    font-size: 10px;
+    color: var(--text);
+  }
+  .nav-item.active { opacity: 1; }
+  .nav-item .nav-icon { font-size: 22px; }
+  .nav-item .nav-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0;
+  }
+  .nav-item.active .nav-dot { opacity: 1; }
+</style>
 </head>
 <body>
 
-  <div class="card">
-    <!-- 👇 CAMBIA ESTE TEXTO POR EL NOMBRE DE TU PROYECTO -->
-    <h1>Mi Proyecto</h1>
-    <p>Hecho por: Tu Nombre</p>
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="notch"></div>
+    <div class="icons">
+      <span>📶</span>
+      <span>🔋</span>
+    </div>
   </div>
 
+  <div class="screens">
+    <!-- HOME -->
+    <div class="screen active" id="screen-home">
+      <p class="greeting">Buenos días</p>
+      <h1 class="welcome-title">Bienvenido<br><span>de vuelta 👋</span></h1>
+
+      <div class="menu-grid">
+        <div class="menu-card bank" onclick="navigate('bank')">
+          <div class="card-icon">🏦</div>
+          <div class="card-info">
+            <h3>Cuenta Bancaria</h3>
+            <p>Saldo, movimientos y más</p>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+
+        <div class="menu-card bolsa" onclick="navigate('bolsa')">
+          <div class="card-icon">📈</div>
+          <div class="card-info">
+            <h3>Bolsa</h3>
+            <p>Mercado mexicano en vivo</p>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+
+        <div class="menu-card edu" onclick="navigate('edu')">
+          <div class="card-icon">🎓</div>
+          <div class="card-info">
+            <h3>Educación</h3>
+            <p>Cursos y recomendaciones</p>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BANK -->
+    <div class="screen" id="screen-bank">
+      <div class="back-btn" onclick="navigate('home')">‹ Inicio</div>
+
+      <div class="balance-card">
+        <div class="balance-label">Saldo disponible</div>
+        <div class="balance-amount"><sup>$</sup>47,382<span style="font-size:22px">.50</span></div>
+        <div class="card-number">•••• •••• •••• 4821</div>
+      </div>
+
+      <div class="screen-title">Acciones rápidas</div>
+      <div class="actions-grid">
+        <div class="action-btn">
+          <div class="action-circle">↑</div>
+          <span class="action-label">Enviar</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-circle">↓</div>
+          <span class="action-label">Recibir</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-circle">💳</div>
+          <span class="action-label">Tarjeta</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-circle">📱</div>
+          <span class="action-label">SPEI</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-circle">📄</div>
+          <span class="action-label">Estado de cuenta</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-circle">🔒</div>
+          <span class="action-label">Bloquear</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-circle">💰</div>
+          <span class="action-label">Ahorro</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-circle">⚙️</div>
+          <span class="action-label">Ajustes</span>
+        </div>
+      </div>
+
+      <div class="screen-title">Últimos movimientos</div>
+      <div class="transactions">
+        <div class="tx-item">
+          <div class="tx-icon">🛒</div>
+          <div class="tx-info">
+            <div class="tx-name">Walmart México</div>
+            <div class="tx-date">Hoy, 10:24 AM</div>
+          </div>
+          <div class="tx-amount neg">-$843.00</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-icon">💼</div>
+          <div class="tx-info">
+            <div class="tx-name">Nómina Empresa</div>
+            <div class="tx-date">Ayer, 8:00 AM</div>
+          </div>
+          <div class="tx-amount pos">+$18,500.00</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-icon">⚡</div>
+          <div class="tx-info">
+            <div class="tx-name">CFE Luz</div>
+            <div class="tx-date">18 feb, 3:12 PM</div>
+          </div>
+          <div class="tx-amount neg">-$364.00</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-icon">🍕</div>
+          <div class="tx-info">
+            <div class="tx-name">Rappi</div>
+            <div class="tx-date">17 feb, 9:40 PM</div>
+          </div>
+          <div class="tx-amount neg">-$230.00</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-icon">📲</div>
+          <div class="tx-info">
+            <div class="tx-name">Transferencia recibida</div>
+            <div class="tx-date">16 feb, 6:05 PM</div>
+          </div>
+          <div class="tx-amount pos">+$2,000.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOLSA -->
+    <div class="screen" id="screen-bolsa">
+      <div class="back-btn" onclick="navigate('home')">‹ Inicio</div>
+
+      <div class="bolsa-header">
+        <div>
+          <div class="bolsa-index">IPC México (BMV)</div>
+          <div class="bolsa-value" id="ipc-value">54,287.34</div>
+        </div>
+        <div class="bolsa-change up" id="ipc-change">▲ +1.23%</div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-tabs">
+          <div class="chart-tab active" onclick="setTab(this,'1D')">1D</div>
+          <div class="chart-tab" onclick="setTab(this,'1S')">1S</div>
+          <div class="chart-tab" onclick="setTab(this,'1M')">1M</div>
+          <div class="chart-tab" onclick="setTab(this,'1A')">1A</div>
+        </div>
+        <canvas id="chart"></canvas>
+      </div>
+
+      <div class="screen-title">Principales acciones</div>
+      <div class="stocks-list">
+        <div class="stock-item">
+          <div class="stock-logo" style="background:rgba(255,0,0,0.15);color:#ff4444">A</div>
+          <div>
+            <div class="stock-name">AMXL</div>
+            <div class="stock-full">América Móvil</div>
+          </div>
+          <div class="stock-right">
+            <div class="stock-price">$14.82</div>
+            <div class="stock-pct up">▲ +0.88%</div>
+          </div>
+        </div>
+        <div class="stock-item">
+          <div class="stock-logo" style="background:rgba(255,165,0,0.15);color:#ffa500">F</div>
+          <div>
+            <div class="stock-name">FEMSAUBD</div>
+            <div class="stock-full">FEMSA</div>
+          </div>
+          <div class="stock-right">
+            <div class="stock-price">$166.40</div>
+            <div class="stock-pct down">▼ -0.42%</div>
+          </div>
+        </div>
+        <div class="stock-item">
+          <div class="stock-logo" style="background:rgba(0,160,255,0.15);color:#00a0ff">B</div>
+          <div>
+            <div class="stock-name">BIMBOA</div>
+            <div class="stock-full">Grupo Bimbo</div>
+          </div>
+          <div class="stock-right">
+            <div class="stock-price">$62.95</div>
+            <div class="stock-pct up">▲ +1.57%</div>
+          </div>
+        </div>
+        <div class="stock-item">
+          <div class="stock-logo" style="background:rgba(0,229,160,0.15);color:#00e5a0">W</div>
+          <div>
+            <div class="stock-name">WALMEX*</div>
+            <div class="stock-full">Walmart México</div>
+          </div>
+          <div class="stock-right">
+            <div class="stock-price">$53.18</div>
+            <div class="stock-pct down">▼ -0.19%</div>
+          </div>
+        </div>
+        <div class="stock-item">
+          <div class="stock-logo" style="background:rgba(148,0,255,0.15);color:#9400ff">G</div>
+          <div>
+            <div class="stock-name">GFNORTEO</div>
+            <div class="stock-full">Grupo Financiero Banorte</div>
+          </div>
+          <div class="stock-right">
+            <div class="stock-price">$133.70</div>
+            <div class="stock-pct up">▲ +2.10%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDU -->
+    <div class="screen" id="screen-edu">
+      <div class="back-btn" onclick="navigate('home')">‹ Inicio</div>
+
+      <div class="edu-hero">
+        <div class="emoji">🎓</div>
+        <h2>Aprende a invertir</h2>
+        <p>Domina las finanzas personales con cursos y recomendaciones especializadas para el mercado mexicano.</p>
+      </div>
+
+      <div class="edu-section">
+        <div class="edu-section-title">📚 Cursos</div>
+
+        <div class="course-card">
+          <div class="course-badge" style="background:rgba(0,229,160,0.15)">💰</div>
+          <div class="course-info">
+            <div class="course-title">Finanzas personales 101</div>
+            <div class="course-meta">8 lecciones · 2h 30min</div>
+          </div>
+          <div class="course-level beginner">Básico</div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-badge" style="background:rgba(0,112,243,0.15)">📊</div>
+          <div class="course-info">
+            <div class="course-title">Introducción a la bolsa mexicana</div>
+            <div class="course-meta">12 lecciones · 4h 15min</div>
+          </div>
+          <div class="course-level medium">Medio</div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-badge" style="background:rgba(245,158,11,0.15)">🏡</div>
+          <div class="course-info">
+            <div class="course-title">Inversión en bienes raíces MX</div>
+            <div class="course-meta">10 lecciones · 3h 45min</div>
+          </div>
+          <div class="course-level medium">Medio</div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-badge" style="background:rgba(248,113,113,0.15)">🤖</div>
+          <div class="course-info">
+            <div class="course-title">Análisis técnico avanzado</div>
+            <div class="course-meta">15 lecciones · 6h 00min</div>
+          </div>
+          <div class="course-level advanced">Avanzado</div>
+        </div>
+      </div>
+
+      <div class="edu-section">
+        <div class="edu-section-title">⭐ Recomendaciones</div>
+
+        <div class="rec-card">
+          <div class="rec-num">01</div>
+          <div class="rec-text">
+            <h4>Empieza con un fondo de emergencia</h4>
+            <p>Antes de invertir, ahorra 3–6 meses de gastos. Es tu red de seguridad financiera.</p>
+          </div>
+        </div>
+
+        <div class="rec-card">
+          <div class="rec-num">02</div>
+          <div class="rec-text">
+            <h4>Diversifica tu portafolio</h4>
+            <p>No pongas todo en un solo activo. Combina acciones, CETES y fondos de inversión.</p>
+          </div>
+        </div>
+
+        <div class="rec-card">
+          <div class="rec-num">03</div>
+          <div class="rec-text">
+            <h4>Conoce los CETES</h4>
+            <p>Los Certificados de la Tesorería son ideales para comenzar con bajo riesgo en México.</p>
+          </div>
+        </div>
+
+        <div class="rec-card">
+          <div class="rec-num">04</div>
+          <div class="rec-text">
+            <h4>Invierte a largo plazo</h4>
+            <p>El tiempo en el mercado casi siempre supera al "timing" del mercado. La paciencia paga.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="navigate('home')">
+      <div class="nav-icon">🏠</div>
+      <span>Inicio</span>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" onclick="navigate('bank')">
+      <div class="nav-icon">💳</div>
+      <span>Cuenta</span>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" onclick="navigate('bolsa')">
+      <div class="nav-icon">📈</div>
+      <span>Bolsa</span>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" onclick="navigate('edu')">
+      <div class="nav-icon">🎓</div>
+      <span>Aprende</span>
+      <div class="nav-dot"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const screenMap = { home: 'screen-home', bank: 'screen-bank', bolsa: 'screen-bolsa', edu: 'screen-edu' };
+const navMap = { home: 0, bank: 1, bolsa: 2, edu: 3 };
+
+function navigate(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenMap[id]).classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => n.classList.remove('active'));
+  if (navMap[id] !== undefined) navItems[navMap[id]].classList.add('active');
+  if (id === 'bolsa') setTimeout(drawChart, 100);
+}
+
+function setTab(el, period) {
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  drawChart(period);
+}
+
+function drawChart(period = '1D') {
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * 2;
+  canvas.height = 320;
+  canvas.style.height = '160px';
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const points = generateData(period);
+  const min = Math.min(...points) * 0.998;
+  const max = Math.max(...points) * 1.002;
+
+  const px = (i) => (i / (points.length - 1)) * w;
+  const py = (v) => h - ((v - min) / (max - min)) * (h * 0.85) - h * 0.05;
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(0,229,160,0.35)');
+  grad.addColorStop(1, 'rgba(0,229,160,0)');
+  ctx.beginPath();
+  ctx.moveTo(px(0), h);
+  ctx.lineTo(px(0), py(points[0]));
+  for (let i = 1; i < points.length; i++) {
+    const cp1x = (px(i - 1) + px(i)) / 2;
+    ctx.bezierCurveTo(cp1x, py(points[i-1]), cp1x, py(points[i]), px(i), py(points[i]));
+  }
+  ctx.lineTo(px(points.length - 1), h);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(points[0]));
+  for (let i = 1; i < points.length; i++) {
+    const cp1x = (px(i - 1) + px(i)) / 2;
+    ctx.bezierCurveTo(cp1x, py(points[i-1]), cp1x, py(points[i]), px(i), py(points[i]));
+  }
+  ctx.strokeStyle = '#00e5a0';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Last dot
+  const lastX = px(points.length - 1), lastY = py(points[points.length - 1]);
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#00e5a0';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 10, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,229,160,0.3)';
+  ctx.fill();
+}
+
+function generateData(period) {
+  const counts = { '1D': 48, '1S': 7, '1M': 30, '1A': 52 };
+  const n = counts[period] || 48;
+  const base = 54000;
+  const data = [base];
+  for (let i = 1; i < n; i++) {
+    const last = data[i-1];
+    data.push(last + (Math.random() - 0.48) * 300);
+  }
+  return data;
+}
+
+// Live update simulation
+setInterval(() => {
+  const base = 54287.34;
+  const variation = (Math.random() - 0.5) * 200;
+  const val = (base + variation).toFixed(2);
+  const pct = (variation / base * 100).toFixed(2);
+  const el = document.getElementById('ipc-value');
+  const ch = document.getElementById('ipc-change');
+  if (el) el.textContent = '$' + parseFloat(val).toLocaleString('es-MX', {minimumFractionDigits:2});
+  if (ch) {
+    const up = variation >= 0;
+    ch.textContent = (up ? '▲ +' : '▼ ') + Math.abs(pct) + '%';
+    ch.className = 'bolsa-change ' + (up ? 'up' : 'down');
+  }
+}, 4000);
+</script>
 </body>
 </html>
